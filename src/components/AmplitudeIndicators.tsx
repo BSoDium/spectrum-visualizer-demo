@@ -20,12 +20,10 @@ export default function AmplitudeIndicators({
   amplitudes,
   amplitudeProps,
   gap,
-  layoutId,
   ...props
 }: AmplitudeIndicatorsProps) {
   return (
     <motion.div
-      layoutId={layoutId}
       css={css`
         display: flex;
         align-items: center;
@@ -48,7 +46,6 @@ export default function AmplitudeIndicators({
         return (
           <motion.div
             key={index}
-            layoutId={layoutId ? `${layoutId}-${index}` : undefined}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, ...amplitudeAnimate }}
             exit={{ opacity: 0 }}

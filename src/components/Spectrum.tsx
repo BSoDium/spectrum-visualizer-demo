@@ -1,11 +1,14 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import { ColorPaletteProp, LinearProgress } from "@mui/joy";
+import { ColorPaletteProp, LinearProgress, Stack, Typography } from "@mui/joy";
 import { AnimationControls, motion } from "framer-motion";
 import { ComponentProps, useEffect, useRef, useState } from "react";
 import { useDebounceValue, useInterval, useResizeObserver } from "usehooks-ts";
 import { maxArray } from "../utils";
 import AmplitudeIndicators from "./AmplitudeIndicators";
+import {
+  PiMicrophoneSlashThin,
+} from "react-icons/pi";
 
 export type SpectrumVariantProp = "soft" | "outlined";
 
@@ -43,6 +46,7 @@ export default function Spectrum({
   ...props
 }: SpectrumProps) {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const [bars, setBars] = useState<number[]>([]);
   const [ghostBars, setGhostBars] = useState<number[]>([]);
@@ -104,9 +108,6 @@ export default function Spectrum({
         const source = audioContext.createMediaStreamSource(stream);
         source.connect(analyser);
 
-        // Stop loading when the audio input is ready
-        setLoading(false);
-
         /**
          * Update the bars based on the audio input. This function is called recursively using
          * requestAnimationFrame.
@@ -147,8 +148,12 @@ export default function Spectrum({
         // Start the animation loop
         updateBars();
       })
-      .catch((error) => {
-        console.error(error);
+      .catch(() => {
+        setError(true);
+      })
+      .finally(() => {
+        // Stop loading when the audio input is ready
+        setLoading(false);
       });
 
     return () => {
@@ -178,9 +183,10 @@ export default function Spectrum({
       `}
       {...props}
     >
-      {loading ? (
+      {loading || error ? (
         <motion.div
-          layoutId="bars"
+          layoutId="content"
+          key={loading ? "loading" : "error"}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -192,14 +198,28 @@ export default function Spectrum({
             justify-content: center;
           `}
         >
-          <LinearProgress
-            color={color}
-            variant="soft"
-            thickness={barWidth}
-            sx={{
-              width: "100%",
-            }}
-          />
+          {error ? (
+            <Stack direction="row" gap={2} alignItems="center">
+              <PiMicrophoneSlashThin size="4rem" style={{ flexShrink: 0 }} />
+              <Stack>
+                <Typography level="h2" fontWeight="sm">
+                  That's awkward
+                </Typography>
+                <Typography level="body-sm">
+                  It seems like we couldn't access your microphone.
+                </Typography>
+              </Stack>
+            </Stack>
+          ) : (
+            <LinearProgress
+              color={color}
+              variant="soft"
+              thickness={barWidth}
+              sx={{
+                width: "100%",
+              }}
+            />
+          )}
         </motion.div>
       ) : (
         <>
@@ -209,6 +229,8 @@ export default function Spectrum({
               spectrumType === "bars" && variant === "outlined" ? gap + 2 : gap;
             return (
               <AmplitudeIndicators
+                layoutId="content"
+                key={spectrumType}
                 amplitudes={amplitudes}
                 amplitudeProps={(amplitude) => {
                   const barHeight = height * (amplitude / 255);
