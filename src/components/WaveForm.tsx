@@ -1,9 +1,9 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import { ColorPaletteProp, VariantProp } from "@mui/joy";
+import { ColorPaletteProp, LinearProgress, VariantProp } from "@mui/joy";
 import { motion } from "framer-motion";
 import { ComponentProps, useEffect, useRef, useState } from "react";
-import { useDebounceValue, useResizeObserver } from "usehooks-ts";
+import { useDebounceValue, useInterval, useResizeObserver } from "usehooks-ts";
 import { maxArray } from "../utils";
 
 export type WaveFormProps = {
@@ -39,6 +39,8 @@ export default function WaveForm({
   color = "primary",
   ...props
 }: WaveFormProps) {
+  const [loading, setLoading] = useState(true);
+
   const [bars, setBars] = useState<number[]>([]);
   const [ghostBars, setGhostBars] = useState<number[]>([]);
 
@@ -50,6 +52,11 @@ export default function WaveForm({
   const [height, setHeight] = useDebounceValue(0, 200);
 
   const [barCount, setBarCount] = useDebounceValue(0, 200);
+
+  // Clear ghost bars after the specified duration
+  useInterval(() => {
+    setGhostBars(Array.from({ length: barCount }, () => 0));
+  }, ghostDuration);
 
   // Reset the ghost bars when the ghost prop becomes false
   useEffect(() => {
@@ -70,22 +77,11 @@ export default function WaveForm({
     setBarCount(count);
   }, [width, gap, step]);
 
-  // Clear ghost bars after the specified duration
-  useEffect(() => {
-    if (ghostDuration !== null) {
-      const intervalId = setInterval(() => {
-        setGhostBars(Array.from({ length: barCount }, () => 0));
-      }, ghostDuration);
-
-      return () => clearInterval(intervalId);
-    }
-  }, [ghostDuration, barCount]);
-
   // Update the bars based on the audio input
   useEffect(() => {
     let audioContext: AudioContext;
     let animationFrameId: number;
-    let isDestroyed = false;
+    let lifeCycleCompleted = false;
 
     navigator.mediaDevices
       .getUserMedia({ audio: true })
@@ -96,14 +92,17 @@ export default function WaveForm({
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
 
-        if (isDestroyed) {
+        if (lifeCycleCompleted) {
           return;
         }
+
+        setLoading(false);
+
         const source = audioContext.createMediaStreamSource(stream);
         source.connect(analyser);
 
         const updateBars = () => {
-          if (isDestroyed) {
+          if (lifeCycleCompleted) {
             return;
           }
           animationFrameId = requestAnimationFrame(updateBars);
@@ -133,6 +132,7 @@ export default function WaveForm({
                 : newBars
             );
         };
+
         updateBars();
       })
       .catch((error) => {
@@ -144,7 +144,7 @@ export default function WaveForm({
         cancelAnimationFrame(animationFrameId);
       }
       audioContext?.close();
-      isDestroyed = true;
+      lifeCycleCompleted = true;
     };
   }, [barCount, minFrequency, maxFrequency, ghost]);
 
@@ -171,70 +171,90 @@ export default function WaveForm({
       `}
       {...props}
     >
-      {Object.entries({ ghostBars, bars }).map(([type, series]) => {
-        const isGhost = type === "ghostBars";
-        return (
-          <div
-            key={type}
-            id={type}
-            css={css`
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              height: 100%;
+      {loading ? (
+        <motion.div layoutId="bars" css={css`
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        `}>
+          <LinearProgress
+            {...{ color, variant }}
+            sx={{
+              width: "100%",
+              height: `${(width - (barCount - 1) * gap) / barCount}px`,
+            }}
+          />
+        </motion.div>
+      ) : (
+        Object.entries({ ghostBars, bars }).map(([type, series]) => {
+          const isGhost = type === "ghostBars";
+          return (
+            <motion.div
+              key={type}
+              layoutId={type}
+              id={type}
+              css={css`
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                width: 100%;
 
-              & > *:not(:last-child) {
-                margin-right: ${gap}px;
-              }
-            `}
-          >
-            {series.map((value, index) => {
-              const barWidth = (width - (barCount - 1) * gap) / barCount;
-              const barHeight = height * (value / 255);
-              const percentageOfSaturation = 100 * (barHeight / height);
-              const backgroundColor = isGhost
-                ? `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Bg))`
-                : interpolate
-                ? `color-mix(in srgb, var(--joy-palette-${color}-${variant}Color) ${percentageOfSaturation}%, var(--joy-palette-${color}-${variant}Bg, transparent))`
-                : value > 0
-                ? `var(--joy-palette-${color}-${variant}Color)`
-                : `var(--joy-palette-${color}-${variant}Bg)`;
-              const borderColor = isGhost
-                ? `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Border))`
-                : `var(--joy-palette-${color}-${variant}Border)`;
+                & > *:not(:last-child) {
+                  margin-right: ${gap}px;
+                }
+              `}
+            >
+              {series.map((value, index) => {
+                const barWidth = (width - (barCount - 1) * gap) / barCount;
+                const barHeight = height * (value / 255);
+                const percentageOfSaturation = 100 * (barHeight / height);
+                const backgroundColor = isGhost
+                  ? `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Bg))`
+                  : interpolate
+                  ? `color-mix(in srgb, var(--joy-palette-${color}-${variant}Color) ${percentageOfSaturation}%, var(--joy-palette-${color}-${variant}Bg, transparent))`
+                  : value > 0
+                  ? `var(--joy-palette-${color}-${variant}Color)`
+                  : `var(--joy-palette-${color}-${variant}Bg)`;
+                const borderColor = isGhost
+                  ? `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Border))`
+                  : `var(--joy-palette-${color}-${variant}Border)`;
 
-              return (
-                <motion.div
-                  layoutId={isGhost ? `ghost-${index}` : undefined}
-                  key={isGhost ? `ghost-${index}` : index}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  style={{
-                    ...(interpolate ? { backgroundColor } : {}),
-                    borderColor,
-                    borderWidth: variant === "outlined" ? "1px" : "0",
-                    width: `${barWidth}px`,
-                    minHeight: `${barWidth}px`,
-                    height: `${barHeight}px`,
-                    maxHeight: `${height}px`,
-                  }}
-                  css={css`
-                    ${interpolate
-                      ? ""
-                      : `background-color: ${backgroundColor};`}
-                    border-style: solid;
-                    border-radius: 0.4rem;
-                    transition: ${interpolate
-                      ? "none"
-                      : "background-color 0.2s ease"};
-                  `}
-                />
-              );
-            })}
-          </div>
-        );
-      })}
+                return (
+                  <motion.div
+                    layoutId={isGhost ? `ghost-${index}` : undefined}
+                    key={isGhost ? `ghost-${index}` : index}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                      ...(interpolate ? { backgroundColor } : {}),
+                      borderColor,
+                      borderWidth: variant === "outlined" ? "1px" : "0",
+                      width: `${barWidth}px`,
+                      minHeight: `${barWidth}px`,
+                      height: `${barHeight}px`,
+                      maxHeight: `${height}px`,
+                    }}
+                    css={css`
+                      ${interpolate
+                        ? ""
+                        : `background-color: ${backgroundColor};`}
+                      border-style: solid;
+                      border-radius: 0.4rem;
+                      transition: ${interpolate
+                        ? "none"
+                        : "background-color 0.2s ease"};
+                    `}
+                  />
+                );
+              })}
+            </motion.div>
+          );
+        })
+      )}
     </motion.div>
   );
 }
