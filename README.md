@@ -36,8 +36,11 @@ This application provides real-time audio visualization from microphone input wi
 
 ### Relevant Files
 
-- `src/components/WaveForm.tsx`: The main waveform visualization component.
-- `src/components/Layout.tsx`: The layout of the demo.
+- [`src/components/WaveForm.tsx`](./src/components/WaveForm.tsx): The main waveform visualization component.
+- [`src/components/Layout.tsx`](./src/components/Layout.tsx): The layout of the demo.
+
+This project was designed with simplicity in mind, so the codebase is relatively small and easy to understand.
+
 
 ## License
 

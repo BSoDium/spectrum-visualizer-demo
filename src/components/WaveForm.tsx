@@ -48,9 +48,10 @@ export default function WaveForm({
   const { width: observedWidth, height: observedHeight } = useResizeObserver({
     ref,
   });
+
+  // Debounce the width, height and bar count to avoid unnecessary re-renders on resize
   const [width, setWidth] = useDebounceValue(0, 200);
   const [height, setHeight] = useDebounceValue(0, 200);
-
   const [barCount, setBarCount] = useDebounceValue(0, 200);
 
   // Clear ghost bars after the specified duration
@@ -96,11 +97,17 @@ export default function WaveForm({
           return;
         }
 
-        setLoading(false);
-
+        // Connect the audio input to the analyser
         const source = audioContext.createMediaStreamSource(stream);
         source.connect(analyser);
 
+        // Stop loading when the audio input is ready
+        setLoading(false);
+
+        /**
+         * Update the bars based on the audio input. This function is called recursively using
+         * requestAnimationFrame.
+         */
         const updateBars = () => {
           if (lifeCycleCompleted) {
             return;
@@ -124,6 +131,7 @@ export default function WaveForm({
             );
           });
 
+          // Update the bars
           setBars(newBars);
           if (ghost)
             setGhostBars((prevGhostBars) =>
@@ -133,6 +141,7 @@ export default function WaveForm({
             );
         };
 
+        // Start the animation loop
         updateBars();
       })
       .catch((error) => {
@@ -140,6 +149,7 @@ export default function WaveForm({
       });
 
     return () => {
+      // Clean up the audio context and the animation frame
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
@@ -147,6 +157,9 @@ export default function WaveForm({
       lifeCycleCompleted = true;
     };
   }, [barCount, minFrequency, maxFrequency, ghost]);
+
+  /** Since the bar width is used in both the loading and the loaded state, we compute it here */
+  const barWidth = (width - (barCount - 1) * gap) / barCount;
 
   return (
     <motion.div
@@ -172,18 +185,24 @@ export default function WaveForm({
       {...props}
     >
       {loading ? (
-        <motion.div layoutId="bars" css={css`
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        `}>
+        <motion.div
+          layoutId="bars"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          css={css`
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          `}
+        >
           <LinearProgress
             {...{ color, variant }}
+            thickness={barWidth}
             sx={{
               width: "100%",
-              height: `${(width - (barCount - 1) * gap) / barCount}px`,
             }}
           />
         </motion.div>
@@ -208,7 +227,6 @@ export default function WaveForm({
               `}
             >
               {series.map((value, index) => {
-                const barWidth = (width - (barCount - 1) * gap) / barCount;
                 const barHeight = height * (value / 255);
                 const percentageOfSaturation = 100 * (barHeight / height);
                 const backgroundColor = isGhost
