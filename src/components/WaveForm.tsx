@@ -83,59 +83,70 @@ export default function WaveForm({
 
   // Update the bars based on the audio input
   useEffect(() => {
-    const audioContext = new window.AudioContext();
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 2048;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
+    let audioContext: AudioContext;
     let animationFrameId: number;
     let isDestroyed = false;
 
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      if (isDestroyed) {
-        return;
-      }
-      const source = audioContext.createMediaStreamSource(stream);
-      source.connect(analyser);
+    console.log("Requesting audio stream");
 
-      const updateBars = () => {
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        audioContext = new window.AudioContext();
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        console.log("Audio stream started");
         if (isDestroyed) {
           return;
         }
-        animationFrameId = requestAnimationFrame(updateBars);
-        analyser.getByteFrequencyData(dataArray);
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
 
-        const newBars = Array.from({ length: barCount }, (_, index) => {
-          const start = Math.floor(
-            minFrequency + (index / barCount) * (maxFrequency - minFrequency)
-          );
-          const end = Math.floor(
-            minFrequency +
-              ((index + 1) / barCount) * (maxFrequency - minFrequency)
-          );
-          return (
-            dataArray.slice(start, end).reduce((acc, value) => acc + value, 0) /
-            (end - start)
-          );
-        });
+        const updateBars = () => {
+          if (isDestroyed) {
+            return;
+          }
+          animationFrameId = requestAnimationFrame(updateBars);
+          analyser.getByteFrequencyData(dataArray);
 
-        setBars(newBars);
-        if (ghost)
-          setGhostBars((prevGhostBars) =>
-            prevGhostBars.length === newBars.length
-              ? maxArray(prevGhostBars, newBars)
-              : newBars
-          );
-      };
-      updateBars();
-    });
+          const newBars = Array.from({ length: barCount }, (_, index) => {
+            const start = Math.floor(
+              minFrequency + (index / barCount) * (maxFrequency - minFrequency)
+            );
+            const end = Math.floor(
+              minFrequency +
+                ((index + 1) / barCount) * (maxFrequency - minFrequency)
+            );
+            return (
+              dataArray
+                .slice(start, end)
+                .reduce((acc, value) => acc + value, 0) /
+              (end - start)
+            );
+          });
+
+          setBars(newBars);
+          if (ghost)
+            setGhostBars((prevGhostBars) =>
+              prevGhostBars.length === newBars.length
+                ? maxArray(prevGhostBars, newBars)
+                : newBars
+            );
+        };
+        updateBars();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
     return () => {
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
-      audioContext.close();
+      audioContext?.close();
       isDestroyed = true;
     };
   }, [barCount, minFrequency, maxFrequency, ghost]);
