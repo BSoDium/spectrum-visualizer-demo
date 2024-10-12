@@ -1,0 +1,16 @@
+{
+    "include": [
+        "./src/**/*"
+    ],
+    "compilerOptions": {
+        "strict": true,
+        "esModuleInterop": true,
+        "lib": [
+            "ES2020",
+            "DOM",
+            "DOM.Iterable"
+          ],
+        "jsx": "react-jsx",
+        "jsxImportSource": "@emotion/react"
+}
+}

@@ -1,0 +1,1 @@
+{"setupTasks":[{"name":"Install Dependencies","command":"yarn install"}],"tasks":{"start":{"name":"start","command":"yarn start","runAtStart":true,"preview":{"port":3000}},"build":{"name":"build","command":"yarn build","runAtStart":false},"test":{"name":"test","command":"yarn test","runAtStart":false},"eject":{"name":"eject","command":"yarn eject","runAtStart":false}}}
