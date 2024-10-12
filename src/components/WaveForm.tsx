@@ -87,8 +87,6 @@ export default function WaveForm({
     let animationFrameId: number;
     let isDestroyed = false;
 
-    console.log("Requesting audio stream");
-
     navigator.mediaDevices
       .getUserMedia({ audio: true })
       .then((stream) => {
@@ -98,7 +96,6 @@ export default function WaveForm({
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
 
-        console.log("Audio stream started");
         if (isDestroyed) {
           return;
         }
