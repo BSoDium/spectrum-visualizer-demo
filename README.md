@@ -1,6 +1,6 @@
-# Waveform Demo
+# Spectrum Demo
 
-A demo application for a custom waveform sound visualization component.
+A demo application for a custom spectrum sound visualization component.
 
 ![alt text](assets/recording-dark-theme.gif#gh-dark-mode-only)
 ![alt text](assets/recording-light-theme.gif#gh-light-mode-only)
@@ -14,8 +14,8 @@ This application provides real-time audio visualization from microphone input wi
 1. **Prerequisites**: Ensure you have Node.js and npm or yarn installed.
 2. **Installation**:
     ```sh
-    git clone https://github.com/your-username/waveform-demo.git
-    cd waveform-demo
+    git clone https://github.com/your-username/spectrum-demo.git
+    cd spectrum-demo
     npm install
     # or
     yarn install
@@ -36,7 +36,8 @@ This application provides real-time audio visualization from microphone input wi
 
 ### Relevant Files
 
-- [`src/components/WaveForm.tsx`](./src/components/WaveForm.tsx): The main waveform visualization component.
+- [`src/components/Spectrum.tsx`](./src/components/Spectrum.tsx): The main spectrum visualization component, contains the audio processing logic.
+- [`src/components/AmplitudeIndicators.tsx`](./src/components/AmplitudeIndicators.tsx): The amplitude indicators for the spectrum.
 - [`src/components/Layout.tsx`](./src/components/Layout.tsx): The layout of the demo.
 
 This project was designed with simplicity in mind, so the codebase is relatively small and easy to understand.

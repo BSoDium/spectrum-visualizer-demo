@@ -1,7 +1,7 @@
 {
-  "name": "waveform-demo",
+  "name": "spectrum-visualizer-demo",
   "version": "1.0.0",
-  "description": "A demo for a custom waveform sound visualisation component.",
+  "description": "A demo for a custom spectrum sound visualisation component.",
   "keywords": [
     "sound",
     "microphone",

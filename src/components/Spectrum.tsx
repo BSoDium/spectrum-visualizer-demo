@@ -1,12 +1,13 @@
 /** @jsxImportSource @emotion/react */
-import { css } from "@emotion/react";
+import { css, Interpolation, Theme } from "@emotion/react";
 import { ColorPaletteProp, LinearProgress, VariantProp } from "@mui/joy";
 import { motion } from "framer-motion";
 import { ComponentProps, useEffect, useRef, useState } from "react";
 import { useDebounceValue, useInterval, useResizeObserver } from "usehooks-ts";
 import { maxArray } from "../utils";
+import AmplitudeIndicators from "./AmplitudeIndicators";
 
-export type WaveFormProps = {
+export type SpectrumProps = {
   /** The width of the bars */
   step?: number;
   /** The gap between the bars */
@@ -27,7 +28,7 @@ export type WaveFormProps = {
   color?: ColorPaletteProp;
 } & ComponentProps<typeof motion.div>;
 
-export default function WaveForm({
+export default function Spectrum({
   step = 8,
   gap = 4,
   interpolate = false,
@@ -38,7 +39,7 @@ export default function WaveForm({
   variant = "soft",
   color = "primary",
   ...props
-}: WaveFormProps) {
+}: SpectrumProps) {
   const [loading, setLoading] = useState(true);
 
   const [bars, setBars] = useState<number[]>([]);
@@ -170,17 +171,6 @@ export default function WaveForm({
         width: min(25rem, 100%);
         height: min(5rem, 100%);
         overflow: hidden;
-
-        & > *:first-of-type {
-          position: absolute;
-          top: 0;
-          left: 0;
-          z-index: 0;
-        }
-
-        & > *:last-of-type {
-          z-index: 1;
-        }
       `}
       {...props}
     >
@@ -207,47 +197,33 @@ export default function WaveForm({
           />
         </motion.div>
       ) : (
-        Object.entries({ ghostBars, bars }).map(([type, series]) => {
-          const isGhost = type === "ghostBars";
-          return (
-            <motion.div
-              key={type}
-              layoutId={type}
-              id={type}
-              css={css`
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                height: 100%;
-                width: 100%;
+        <>
+          {[ghostBars, bars].map((amplitudes, index) => {
+            const spectrumType = index === 0 ? "ghost" : "bars";
+            return (
+              <AmplitudeIndicators
+                amplitudes={amplitudes}
+                amplitudeProps={(amplitude) => {
+                  let backgroundColor: string;
+                  let borderColor: string;
 
-                & > *:not(:last-child) {
-                  margin-right: ${gap}px;
-                }
-              `}
-            >
-              {series.map((value, index) => {
-                const barHeight = height * (value / 255);
-                const percentageOfSaturation = 100 * (barHeight / height);
-                const backgroundColor = isGhost
-                  ? `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Bg))`
-                  : interpolate
-                  ? `color-mix(in srgb, var(--joy-palette-${color}-${variant}Color) ${percentageOfSaturation}%, var(--joy-palette-${color}-${variant}Bg, transparent))`
-                  : value > 0
-                  ? `var(--joy-palette-${color}-${variant}Color)`
-                  : `var(--joy-palette-${color}-${variant}Bg)`;
-                const borderColor = isGhost
-                  ? `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Border))`
-                  : `var(--joy-palette-${color}-${variant}Border)`;
+                  const barHeight = height * (amplitude / 255);
 
-                return (
-                  <motion.div
-                    layoutId={isGhost ? `ghost-${index}` : undefined}
-                    key={isGhost ? `ghost-${index}` : index}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    style={{
+                  if (spectrumType === "ghost") {
+                    backgroundColor = `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Bg))`;
+                    borderColor = `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Border))`;
+                  } else {
+                    const percentageOfSaturation = 100 * (barHeight / height);
+                    backgroundColor = interpolate
+                      ? `color-mix(in srgb, var(--joy-palette-${color}-${variant}Color) ${percentageOfSaturation}%, var(--joy-palette-${color}-${variant}Bg, transparent))`
+                      : amplitude > 0
+                      ? `var(--joy-palette-${color}-${variant}Color)`
+                      : `var(--joy-palette-${color}-${variant}Bg)`;
+                    borderColor = `var(--joy-palette-${color}-${variant}Border)`;
+                  }
+
+                  return {
+                    style: {
                       ...(interpolate ? { backgroundColor } : {}),
                       borderColor,
                       borderWidth: variant === "outlined" ? "1px" : "0",
@@ -255,8 +231,8 @@ export default function WaveForm({
                       minHeight: `${barWidth}px`,
                       height: `${barHeight}px`,
                       maxHeight: `${height}px`,
-                    }}
-                    css={css`
+                    },
+                    css: css`
                       ${interpolate
                         ? ""
                         : `background-color: ${backgroundColor};`}
@@ -265,13 +241,27 @@ export default function WaveForm({
                       transition: ${interpolate
                         ? "none"
                         : "background-color 0.2s ease"};
-                    `}
-                  />
-                );
-              })}
-            </motion.div>
-          );
-        })
+                    `,
+                  };
+                }}
+                gap={gap}
+                style={
+                  spectrumType === "ghost"
+                    ? {
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        zIndex: 0,
+                      }
+                    : {
+                        zIndex: 1,
+                      }
+                }
+                layoutId={spectrumType === "ghost" ? "ghost" : undefined}
+              />
+            );
+          })}
+        </>
       )}
     </motion.div>
   );

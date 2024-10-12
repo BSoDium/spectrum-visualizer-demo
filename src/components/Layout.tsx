@@ -13,7 +13,7 @@ import {
 } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { useBoolean } from "usehooks-ts";
-import WaveForm from "./WaveForm";
+import Spectrum from "./Spectrum";
 import { LuMoon, LuSun, LuSunMoon } from "react-icons/lu";
 import { motion } from "framer-motion";
 
@@ -76,7 +76,7 @@ export default function Layout() {
         flex={1}
         px={4}
       >
-        <WaveForm
+        <Spectrum
           {...{ interpolate, ghost, variant, color }}
           ghostDuration={10000}
         />

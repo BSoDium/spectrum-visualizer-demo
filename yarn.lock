@@ -13211,9 +13211,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"waveform-demo@workspace:.":
+"spectrum-demo@workspace:.":
   version: 0.0.0-use.local
-  resolution: "waveform-demo@workspace:."
+  resolution: "spectrum-demo@workspace:."
   dependencies:
     "@emotion/react": "npm:11.13.3"
     "@emotion/styled": "npm:11.13.0"
