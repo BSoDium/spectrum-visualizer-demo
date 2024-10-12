@@ -1,11 +1,13 @@
 /** @jsxImportSource @emotion/react */
-import { css, Interpolation, Theme } from "@emotion/react";
-import { ColorPaletteProp, LinearProgress, VariantProp } from "@mui/joy";
-import { motion } from "framer-motion";
+import { css } from "@emotion/react";
+import { ColorPaletteProp, LinearProgress } from "@mui/joy";
+import { AnimationControls, motion } from "framer-motion";
 import { ComponentProps, useEffect, useRef, useState } from "react";
 import { useDebounceValue, useInterval, useResizeObserver } from "usehooks-ts";
 import { maxArray } from "../utils";
 import AmplitudeIndicators from "./AmplitudeIndicators";
+
+export type SpectrumVariantProp = "soft" | "outlined";
 
 export type SpectrumProps = {
   /** The width of the bars */
@@ -23,7 +25,7 @@ export type SpectrumProps = {
   /** The maximum frequency to display */
   maxFrequency?: number;
   /** The variant of the bars. Cf. MUI Joy */
-  variant?: VariantProp;
+  variant?: SpectrumVariantProp;
   /** The color of the bars. Cf. MUI Joy */
   color?: ColorPaletteProp;
 } & ComponentProps<typeof motion.div>;
@@ -168,8 +170,10 @@ export default function Spectrum({
       css={css`
         position: relative;
         display: flex;
-        width: min(25rem, 100%);
-        height: min(5rem, 100%);
+        padding: 1rem;
+        border-radius: 1.375rem;
+        width: min(27rem, 100%);
+        height: min(7rem, 100%);
         overflow: hidden;
       `}
       {...props}
@@ -189,7 +193,8 @@ export default function Spectrum({
           `}
         >
           <LinearProgress
-            {...{ color, variant }}
+            color={color}
+            variant="soft"
             thickness={barWidth}
             sx={{
               width: "100%",
@@ -204,38 +209,51 @@ export default function Spectrum({
               <AmplitudeIndicators
                 amplitudes={amplitudes}
                 amplitudeProps={(amplitude) => {
+                  const barHeight = height * (amplitude / 255);
+                  const outlined = variant === "outlined";
+
                   let backgroundColor: string;
                   let borderColor: string;
 
-                  const barHeight = height * (amplitude / 255);
-
                   if (spectrumType === "ghost") {
-                    backgroundColor = `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Bg))`;
-                    borderColor = `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Border))`;
+                    backgroundColor = `color-mix(in srgb, var(--joy-palette-background-body) 30%, var(--joy-palette-${color}-${variant}Bg))`;
+                    borderColor = `color-mix(in srgb, var(--joy-palette-background-body) 30%, var(--joy-palette-${color}-outlinedBorder))`;
                   } else {
-                    const percentageOfSaturation = 100 * (barHeight / height);
-                    backgroundColor = interpolate
-                      ? `color-mix(in srgb, var(--joy-palette-${color}-${variant}Color) ${percentageOfSaturation}%, var(--joy-palette-${color}-${variant}Bg, transparent))`
-                      : amplitude > 0
-                      ? `var(--joy-palette-${color}-${variant}Color)`
-                      : `var(--joy-palette-${color}-${variant}Bg)`;
-                    borderColor = `var(--joy-palette-${color}-${variant}Border)`;
+                    const amplitudePercentage = 100 * (barHeight / height);
+                    backgroundColor = `color-mix(in srgb, var(--joy-palette-${color}-${variant}Color) ${
+                      interpolate
+                        ? amplitudePercentage
+                        : amplitude > 0
+                        ? 100
+                        : 0
+                    }%, var(--joy-palette-${color}-${variant}Bg, transparent))`;
+                    borderColor = "transparent";
                   }
 
                   return {
+                    animate: (spectrumType === "ghost"
+                      ? {
+                          height: `${barHeight}px`,
+                        }
+                      : {}) as AnimationControls,
+
                     style: {
-                      ...(interpolate ? { backgroundColor } : {}),
-                      borderColor,
-                      borderWidth: variant === "outlined" ? "1px" : "0",
+                      ...(interpolate ? { backgroundColor, borderColor } : {}),
+                      ...(spectrumType === "bars"
+                        ? {
+                            height: `${barHeight}px`,
+                          }
+                        : {}),
+
                       width: `${barWidth}px`,
                       minHeight: `${barWidth}px`,
-                      height: `${barHeight}px`,
                       maxHeight: `${height}px`,
                     },
                     css: css`
                       ${interpolate
                         ? ""
-                        : `background-color: ${backgroundColor};`}
+                        : `background-color: ${backgroundColor}; border-color: ${borderColor};`}
+                      border-width: ${outlined ? "1px" : "0"};
                       border-style: solid;
                       border-radius: 0.4rem;
                       transition: ${interpolate
@@ -251,13 +269,12 @@ export default function Spectrum({
                         position: "absolute",
                         top: 0,
                         left: 0,
-                        zIndex: 0,
+                        zIndex: variant === "outlined" ? 2 : 0,
                       }
                     : {
                         zIndex: 1,
                       }
                 }
-                layoutId={spectrumType === "ghost" ? "ghost" : undefined}
               />
             );
           })}

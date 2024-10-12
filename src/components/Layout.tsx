@@ -3,17 +3,15 @@ import {
   Select,
   Option,
   Stack,
-  VariantProp,
   Checkbox,
   FormControl,
   FormLabel,
   Button,
   useColorScheme,
-  Card,
 } from "@mui/joy";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useBoolean } from "usehooks-ts";
-import Spectrum from "./Spectrum";
+import Spectrum, { SpectrumVariantProp } from "./Spectrum";
 import { LuMoon, LuSun, LuSunMoon } from "react-icons/lu";
 import { motion } from "framer-motion";
 
@@ -23,12 +21,10 @@ export type Mode = (typeof modes)[number];
 export default function Layout() {
   const { mode, setMode } = useColorScheme();
 
-  const [variant, setVariant] = useState<VariantProp>("soft");
+  const [variant, setVariant] = useState<SpectrumVariantProp>("soft");
   const [color, setColor] = useState<ColorPaletteProp>("primary");
   const { value: interpolate, toggle: toggleInterpolate } = useBoolean(true);
   const { value: ghost, toggle: toggleGhost } = useBoolean(true);
-
-  const ghostDuration = 5000;
 
   return (
     <Stack
@@ -108,7 +104,7 @@ export default function Layout() {
             value={variant}
             onChange={(_, newValue) => newValue && setVariant(newValue)}
           >
-            {["plain", "outlined", "soft", "solid"].map((value) => (
+            {["outlined", "soft"].map((value) => (
               <Option key={value} value={value}>
                 {value}
               </Option>

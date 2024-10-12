@@ -1,4 +1,4 @@
-# Spectrum Demo
+# Spectrum visualizer demo
 
 A demo application for a custom spectrum sound visualization component.
 
