@@ -6,7 +6,7 @@ import { ComponentProps, useEffect, useRef, useState } from "react";
 import { useDebounceValue, useResizeObserver } from "usehooks-ts";
 import { maxArray } from "../utils";
 
-export type SpeechSoundVisualizerProps = {
+export type WaveFormProps = {
   /** The width of the bars */
   step?: number;
   /** The gap between the bars */
@@ -38,7 +38,7 @@ export default function WaveForm({
   variant = "soft",
   color = "primary",
   ...props
-}: SpeechSoundVisualizerProps) {
+}: WaveFormProps) {
   const [bars, setBars] = useState<number[]>([]);
   const [ghostBars, setGhostBars] = useState<number[]>([]);
 
