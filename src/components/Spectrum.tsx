@@ -205,6 +205,8 @@ export default function Spectrum({
         <>
           {[ghostBars, bars].map((amplitudes, index) => {
             const spectrumType = index === 0 ? "ghost" : "bars";
+            const computedGap =
+              spectrumType === "bars" && variant === "outlined" ? gap + 2 : gap;
             return (
               <AmplitudeIndicators
                 amplitudes={amplitudes}
@@ -216,8 +218,8 @@ export default function Spectrum({
                   let borderColor: string;
 
                   if (spectrumType === "ghost") {
-                    backgroundColor = `color-mix(in srgb, var(--joy-palette-background-body) 30%, var(--joy-palette-${color}-${variant}Bg))`;
-                    borderColor = `color-mix(in srgb, var(--joy-palette-background-body) 30%, var(--joy-palette-${color}-outlinedBorder))`;
+                    backgroundColor = `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-${variant}Bg))`;
+                    borderColor = `color-mix(in srgb, transparent 40%, var(--joy-palette-${color}-outlinedBorder))`;
                   } else {
                     const amplitudePercentage = 100 * (barHeight / height);
                     backgroundColor = `color-mix(in srgb, var(--joy-palette-${color}-${variant}Color) ${
@@ -227,13 +229,28 @@ export default function Spectrum({
                         ? 100
                         : 0
                     }%, var(--joy-palette-${color}-${variant}Bg, transparent))`;
-                    borderColor = "transparent";
+                    borderColor = `color-mix(in srgb, var(--joy-palette-${color}-outlinedBorder) ${
+                      interpolate
+                        ? amplitudePercentage
+                        : amplitude > 0
+                        ? 100
+                        : 0
+                    }%, var(--joy-palette-${color}-${variant}Bg, transparent))`;
                   }
+
+                  const computedBarWidth =
+                    spectrumType === "bars" && variant === "outlined"
+                      ? barWidth - 2
+                      : barWidth;
+                  const computedBarHeight =
+                    spectrumType === "bars" && variant === "outlined"
+                      ? barHeight - 2
+                      : barHeight;
 
                   return {
                     animate: (spectrumType === "ghost"
                       ? {
-                          height: `${barHeight}px`,
+                          height: `${computedBarHeight}px`,
                         }
                       : {}) as AnimationControls,
 
@@ -241,12 +258,12 @@ export default function Spectrum({
                       ...(interpolate ? { backgroundColor, borderColor } : {}),
                       ...(spectrumType === "bars"
                         ? {
-                            height: `${barHeight}px`,
+                            height: `${computedBarHeight}px`,
                           }
                         : {}),
 
-                      width: `${barWidth}px`,
-                      minHeight: `${barWidth}px`,
+                      width: `${computedBarWidth}px`,
+                      minHeight: `${computedBarWidth}px`,
                       maxHeight: `${height}px`,
                     },
                     css: css`
@@ -262,14 +279,14 @@ export default function Spectrum({
                     `,
                   };
                 }}
-                gap={gap}
+                gap={computedGap}
                 style={
                   spectrumType === "ghost"
                     ? {
                         position: "absolute",
                         top: 0,
                         left: 0,
-                        zIndex: variant === "outlined" ? 2 : 0,
+                        zIndex: 0,
                       }
                     : {
                         zIndex: 1,
