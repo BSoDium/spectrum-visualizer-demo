@@ -8,6 +8,7 @@ import {
   FormLabel,
   Button,
   useColorScheme,
+  Slider,
 } from "@mui/joy";
 import { useState } from "react";
 import { useBoolean } from "usehooks-ts";
@@ -73,7 +74,12 @@ export default function Layout() {
         px={4}
       >
         <Spectrum
-          {...{ interpolate, ghost, variant, color }}
+          {...{
+            interpolate,
+            ghost,
+            variant,
+            color,
+          }}
           ghostDuration={10000}
         />
       </Stack>

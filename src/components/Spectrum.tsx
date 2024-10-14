@@ -6,9 +6,7 @@ import { ComponentProps, useEffect, useRef, useState } from "react";
 import { useDebounceValue, useInterval, useResizeObserver } from "usehooks-ts";
 import { maxArray } from "../utils";
 import AmplitudeIndicators from "./AmplitudeIndicators";
-import {
-  PiMicrophoneSlashThin,
-} from "react-icons/pi";
+import { PiMicrophoneSlash } from "react-icons/pi";
 
 export type SpectrumVariantProp = "soft" | "outlined";
 
@@ -31,6 +29,10 @@ export type SpectrumProps = {
   variant?: SpectrumVariantProp;
   /** The color of the bars. Cf. MUI Joy */
   color?: ColorPaletteProp;
+  /** Callback when the audio input is ready */
+  onLoad?: () => void;
+  /** Callback when an error occurs */
+  onError?: () => void;
 } & ComponentProps<typeof motion.div>;
 
 export default function Spectrum({
@@ -43,6 +45,8 @@ export default function Spectrum({
   maxFrequency = 200,
   variant = "soft",
   color = "primary",
+  onLoad,
+  onError,
   ...props
 }: SpectrumProps) {
   const [loading, setLoading] = useState(true);
@@ -63,7 +67,7 @@ export default function Spectrum({
 
   // Clear ghost bars after the specified duration
   useInterval(() => {
-    setGhostBars(Array.from({ length: barCount }, () => 0));
+    if (ghost) setGhostBars(Array.from({ length: barCount }, () => 0));
   }, ghostDuration);
 
   // Reset the ghost bars when the ghost prop becomes false
@@ -150,10 +154,12 @@ export default function Spectrum({
       })
       .catch(() => {
         setError(true);
+        onError?.();
       })
       .finally(() => {
         // Stop loading when the audio input is ready
         setLoading(false);
+        onLoad?.();
       });
 
     return () => {
@@ -200,15 +206,10 @@ export default function Spectrum({
         >
           {error ? (
             <Stack direction="row" gap={2} alignItems="center">
-              <PiMicrophoneSlashThin size="4rem" style={{ flexShrink: 0 }} />
-              <Stack>
-                <Typography level="h2" fontWeight="sm">
-                  That's awkward
-                </Typography>
-                <Typography level="body-sm">
-                  It seems like we couldn't access your microphone.
-                </Typography>
-              </Stack>
+              <PiMicrophoneSlash size="1.25rem" style={{ flexShrink: 0 }} />
+              <Typography level="body-sm" textColor="text.secondary">
+                It seems like we couldn't access your microphone.
+              </Typography>
             </Stack>
           ) : (
             <LinearProgress
@@ -226,7 +227,9 @@ export default function Spectrum({
           {[ghostBars, bars].map((amplitudes, index) => {
             const spectrumType = index === 0 ? "ghost" : "bars";
             const computedGap =
-              spectrumType === "bars" && variant === "outlined" ? gap + 2 : gap;
+              spectrumType === "bars" && variant === "outlined" && ghost
+                ? gap + 2
+                : gap;
             return (
               <AmplitudeIndicators
                 layoutId="content"
@@ -261,11 +264,11 @@ export default function Spectrum({
                   }
 
                   const computedBarWidth =
-                    spectrumType === "bars" && variant === "outlined"
+                    spectrumType === "bars" && variant === "outlined" && ghost
                       ? barWidth - 2
                       : barWidth;
                   const computedBarHeight =
-                    spectrumType === "bars" && variant === "outlined"
+                    spectrumType === "bars" && variant === "outlined" && ghost
                       ? barHeight - 2
                       : barHeight;
 
