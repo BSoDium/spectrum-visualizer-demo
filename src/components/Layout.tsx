@@ -72,7 +72,7 @@ export default function Layout() {
         width="100%"
         minHeight="7rem"
         flex={1}
-        px={4}
+        px={6}
       >
         <Spectrum
           {...{

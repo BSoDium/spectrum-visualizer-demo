@@ -182,7 +182,6 @@ export default function Spectrum({
       css={css`
         position: relative;
         display: flex;
-        padding: 1rem;
         border-radius: 1.375rem;
         width: min(27rem, 100%);
         height: min(7rem, 100%);
