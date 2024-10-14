@@ -29,6 +29,7 @@ export default function Layout() {
 
   return (
     <Stack
+      component="main"
       alignItems="center"
       justifyContent="space-between"
       height="100%"
@@ -139,6 +140,7 @@ export default function Layout() {
 
         <Checkbox
           label="Interpolate colours"
+          aria-label="Interpolate colours"
           checked={interpolate}
           onChange={toggleInterpolate}
           sx={{
@@ -154,6 +156,7 @@ export default function Layout() {
         />
         <Checkbox
           label="Display ghost"
+          aria-label="Display ghost"
           checked={ghost}
           onChange={toggleGhost}
           sx={{
