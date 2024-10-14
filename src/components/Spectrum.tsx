@@ -178,6 +178,7 @@ export default function Spectrum({
   return (
     <motion.div
       ref={ref}
+      aria-label="Audio spectrum"
       css={css`
         position: relative;
         display: flex;
