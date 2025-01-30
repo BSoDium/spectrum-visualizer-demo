@@ -14,8 +14,8 @@ This application provides real-time audio visualization from microphone input wi
 1. **Prerequisites**: Ensure you have Node.js and npm or yarn installed.
 2. **Installation**:
     ```sh
-    git clone https://github.com/your-username/spectrum-demo.git
-    cd spectrum-demo
+    git clone https://github.com/BSoDium/spectrum-visualizer-demo.git
+    cd spectrum-visualizer-demo
     npm install
     # or
     yarn install
