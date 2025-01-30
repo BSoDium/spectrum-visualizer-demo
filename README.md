@@ -2,8 +2,11 @@
 
 A demo application for a custom spectrum sound visualization component.
 
-![alt text](assets/recording-dark-theme.gif#gh-dark-mode-only)
-![alt text](assets/recording-light-theme.gif#gh-light-mode-only)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BSoDium/spectrum-visualizer-demo/main/assets/recording-dark-theme.gif">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/BSoDium/spectrum-visualizer-demo/main/assets/recording-light-theme.gif">
+  <img alt="GIF recording of the spectrum visualizer in action">
+</picture>
 
 ## Overview
 
@@ -16,22 +19,39 @@ This application provides real-time audio visualization from microphone input wi
     ```sh
     git clone https://github.com/BSoDium/spectrum-visualizer-demo.git
     cd spectrum-visualizer-demo
-    npm install
-    # or
+    ```
+
+    then, depending on your package manager of choice (this project's `package.json` defines yarn as the default one):
+   
+    ```sh
     yarn install
     ```
-3. **Running the Application**: Start the development server with:
+
+    or, alternatively:
+    
     ```sh
-    npm start
-    # or
+    npm install
+    ```
+4. **Running the Application**: Start the development server with:
+    ```sh
     yarn start
     ```
-    Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-4. **Building for Production**: Create a production build with:
+
+    or, for npm users:
+   
     ```sh
-    npm run build
-    # or
-    yarn build
+    npm start
+    ```
+    Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+6. **Building for Production**: Create a production build with:
+    ```sh
+    yarn run build
+    ```
+
+    or, again:
+    
+    ```sh
+    npm build
     ```
 
 ### Relevant Files
@@ -45,4 +65,6 @@ This project was designed with simplicity in mind, so the codebase is relatively
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. You are **free to reuse** this code as you please, for personal, lucrative or non-lucrative projects. Any publication of this code without any significant modifications to its logic **must** however be **correctly attributed**.
+
+> Don't be a d*ck, if it ain't your work, it ain't your fame
